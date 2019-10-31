@@ -4,7 +4,7 @@
     - shell: "who --ips | head -1 |  awk '{print $5}'"
       register: source_ip
     - debug: var=source_ip
-    - name: Allow all access port
+    - name: Allow me access port
       ufw:
         rule: allow
         src: "{{ source_ip.stdout }}"
