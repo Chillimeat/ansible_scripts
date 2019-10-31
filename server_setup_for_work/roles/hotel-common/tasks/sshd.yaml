@@ -1,0 +1,11 @@
+---
+    - lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        line: '{{ item }}'
+      with_items:
+        - RSAAuthentication yes
+        - PubkeyAuthentication yes
+        - AuthorizedKeysFile      .ssh/authorized_keys
+      notify:
+        - restart sshd

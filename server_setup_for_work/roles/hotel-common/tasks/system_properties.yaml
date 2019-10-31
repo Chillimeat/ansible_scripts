@@ -1,0 +1,93 @@
+---
+    - name: upgrade all packages
+      yum: name=* state=latest
+    - sysctl: 
+        name: net.core.wmem_max  
+        value: "12582912" 
+        state: present
+    - sysctl: 
+        name: net.core.rmem_max  
+        value: "12582912" 
+        state: present
+    - sysctl: 
+        name: net.core.netdev_max_backlog   
+        value:  "5000" 
+        state: present
+    - sysctl: 
+        name: net.core.somaxconn  
+        value: "32768" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_window_scaling   
+        value:  "1" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_rmem  
+        value:  10240 87380 12582912 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_wmem  
+        value:  10240 87380 12582912 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_tw_reuse   
+        value:  "1" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_fin_timeout   
+        value:  "15" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.ip_local_port_range   
+        value:  19000    61000 
+        state: present
+    - sysctl: 
+        name: net.ipv4.conf.all.accept_redirects   
+        value:  "0" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.conf.all.send_redirects   
+        value:  "0" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_syn_retries  
+        value: "3" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_keepalive_time  
+        value: "1200" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_keepalive_intvl  
+        value: "30" 
+        state: present
+    - sysctl: 
+        name: net.ipv4.tcp_keepalive_probes  
+        value: "5" 
+        state: present
+        reload: yes
+    - name: Set Shell File Limits
+      copy:
+        src: resource/custom_limit.conf
+        dest: /etc/security/limits.d
+    - name: ensure packages are installed
+      yum: name={{item}} state=latest
+      with_items:
+        - iptables-services
+    - name: disable firewalld
+      command: "{{ item }}"
+      with_items:
+          - systemctl stop firewalld
+          - systemctl mask firewalld 
+          - systemctl enable iptables
+          - systemctl restart iptables
+    - iptables:
+        chain: INPUT
+        source: 172.17.19.124
+        action: insert
+        rule_num: 4
+        jump: ACCEPT
+    - name: restart iptables
+      command: "{{ item }}"
+      with_items:
+          - systemctl restart iptables

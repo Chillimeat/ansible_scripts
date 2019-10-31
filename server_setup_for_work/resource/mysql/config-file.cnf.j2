@@ -1,0 +1,74 @@
+#
+# These groups are read by MariaDB server.
+# Use it for options that only the server (but not clients) should see
+#
+# See the examples of server my.cnf files in /usr/share/mysql/
+#
+
+# this is read by the standalone daemon and embedded servers
+[server]
+
+# this is only for the mysqld standalone daemon
+[mysqld]
+skip_name_resolve
+socket=/var/lib/mysql/mysql.sock
+wait_timeout=2592000
+interactive_timeout=259200
+max_allowed_packet=1G
+max_connections=1000
+innodb_file_per_table
+innodb_flush_method=O_DIRECT
+innodb_flush_log_at_trx_commit=2
+#innodb_flush_method=O_DSYNC
+innodb_buffer_pool_size=1G
+innodb_buffer_pool_instances=4
+innodb_flush_neighbors=0
+innodb_io_capacity=4000
+innodb_io_capacity_max=8000
+innodb_lru_scan_depth=2000
+innodb_write_io_threads=16
+innodb_thread_concurrency=64
+join_buffer_size=64M
+max_heap_table_size=256M
+tmp_table_size=256M
+sort_buffer_size=4M
+read_rnd_buffer_size=4M
+read_buffer_size=8M
+query_cache_type=0
+query_cache_size=0
+transaction-isolation=READ-COMMITTED
+innodb_log_file_size=1024M
+optimizer_switch="mrr=on,mrr_cost_based=off,mrr_sort_keys=on"
+
+binlog_format=ROW
+innodb_autoinc_lock_mode=2
+expire_logs_days=1
+max_binlog_size=1G
+
+#skip-slave-start
+server-id={{ db_index }}
+
+default_time_zone='+8:00'
+
+#log-slave-updates=1
+
+#general_log_file=/var/log/mysql/mysql.log
+#general_log=1
+log_warnings=0
+slow_query_log=0
+slow_query_log_file=slow.log
+
+# this is only for embedded server
+[embedded]
+
+# This group is only read by MariaDB-5.5 servers.
+# If you use the same .cnf file for MariaDB of different versions,
+# use this group for options that older servers don't understand
+[mysqld-5.5]
+
+# These two groups are only read by MariaDB servers, not by MySQL.
+# If you use the same .cnf file for MySQL and MariaDB,
+# you can put MariaDB-only options here
+[mariadb]
+
+[mariadb-5.5]

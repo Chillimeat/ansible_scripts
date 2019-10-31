@@ -1,0 +1,38 @@
+---
+- include_role:
+     name: dj-wasabi.zabbix-agent
+  vars:
+       zabbix_agent_server: "{{ zabbix_server_ip }}" 
+       zabbix_agent_serveractive: "{{ zabbix_server_ip }}"
+       zabbix_url: "http://{{ zabbix_server_ip }}:8099"
+       zabbix_api_use: true 
+       zabbix_api_user: Admin
+       zabbix_api_pass: zabbix
+       zabbix_create_host: present
+       zabbix_host_groups:
+         - Linux Servers
+       zabbix_link_templates:
+         - Template OS Linux
+         - Apache APP Template
+       zabbix_agent_become_on_localhost: false
+       zabbix_version: 3.4
+- name: add sudo priviledge 
+  copy: src=resource/sudoers_zabbix
+        dest="/etc/sudoers.d/zabbix"
+- name: "Installing supervisor userparameter file"
+  copy: src=resource/zabbix_userparameter_supervisord.conf
+        dest="/etc/zabbix/zabbix_agentd.d/userparameter_supervisord.conf"
+        owner=zabbix
+        group=zabbix
+        mode=0755
+  notify: restart zabbix-agent
+- name: add iptable rule for zabbix
+  iptables:
+    chain: INPUT
+    ctstate: NEW,ESTABLISHED
+    source: "{{ zabbix_server_ip }}"
+    protocol: tcp
+    destination_port: 10050
+    action: insert
+    rule_num: 4
+    jump: ACCEPT

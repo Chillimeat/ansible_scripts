@@ -1,0 +1,41 @@
+---
+    - name: install the 'Development tools' package group
+      yum: name="@Development tools" state=present
+    - name: ensure packages are installed
+      yum: name={{item}} state=latest
+      with_items:
+        - zlib-devel
+        - bzip2-devel
+        - openssl-devel
+        - ncurses-devel
+        - sqlite-devel
+        - readline-devel
+        - tk-devel
+        - gdbm-devel
+        - db4-devel
+        - libpcap-devel
+        - xz-devel
+    - name: create parent directory
+      file: path=/root/packages/python3 state=directory mode=0755
+    - name: get python3
+      get_url: url=https://www.python.org/ftp/python/3.6.9/Python-3.6.9.tgz dest=/root/packages/python3/Python-3.6.9.tgz validate_certs=no timeout=60
+    - name: unarchive python3
+      unarchive: src=/root/packages/python3/Python-3.6.9.tgz dest=/root/packages/python3/ copy=no
+    - name: create build directory
+      file: path=/root/packages/python3/python3_build/ state=directory mode=0755
+    - name: configure python3
+      command: "{{ item }} chdir=/root/packages/python3/python3_build/"
+      with_items:
+          - ../Python-3.6.9/configure --prefix=/opt/python3
+    - name: build python3
+      command: "{{ item }} chdir=/root/packages/python3/python3_build/"
+      with_items:
+          - make
+    - name: install python3
+      command: "{{ item }} chdir=/root/packages/python3/python3_build/"
+      with_items:
+          - make install
+    - name: set ld conf
+      copy: content="/opt/python3/lib" dest=/etc/ld.so.conf.d/python3.conf group=root owner=root mode=0644
+    - name: ldconfig
+      command: "ldconfig"

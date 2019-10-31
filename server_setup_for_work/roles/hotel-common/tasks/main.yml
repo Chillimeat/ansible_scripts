@@ -1,0 +1,13 @@
+---
+# tasks file for common
+- include: tasks/system_properties.yaml
+- include: tasks/python3.yaml
+  when: install_python3
+- include: tasks/supuser.yaml
+  when: install_supervisor_in_user
+- include: tasks/sshd.yaml
+  when: update_sshd
+- include: tasks/zabbix.yaml
+  when: install_zabbix_agent
+- debug: var=install_zabbix_agent
+- debug: var=install_python3

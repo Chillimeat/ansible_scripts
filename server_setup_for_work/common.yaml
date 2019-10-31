@@ -1,0 +1,7 @@
+---
+- hosts: centos7
+  remote_user: root
+  roles:
+    - role: hotel-common
+      vars:
+          install_python3: true

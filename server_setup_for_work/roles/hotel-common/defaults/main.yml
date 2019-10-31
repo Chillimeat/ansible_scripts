@@ -1,0 +1,6 @@
+---
+# defaults file for hotel-common
+install_python3: false
+install_supervisor_in_user: false
+update_sshd: false
+install_zabbix_agent: false

@@ -1,0 +1,30 @@
+
+- hosts: centos7
+  remote_user: root
+  tasks:
+  - name: create parent directory
+    file: path=/data state=directory mode=0755
+  - name: create conf dir
+    file: path=/root/mysql_conf state=directory mode=0755
+  - name: copy conf
+    template: src=resource/mysql/config-file.cnf.j2 dest=/root/mysql_conf/config-file.cnf
+  - name: ensure epel-release are installed
+    yum: name=epel-release state=latest
+  - name: ensure pip are installed
+    yum: name=python2-pip state=latest
+  - name: install docker
+    command: '/usr/bin/pip install docker'
+  - name: mariadb
+    docker_container:
+      name: db{{ db_index }}
+      image: mariadb:latest
+      network_mode: host
+      volumes:
+        - /data:/var/lib/mysql
+        - /root/mysql_conf:/etc/mysql/conf.d
+      env:
+        MYSQL_ROOT_PASSWORD: kz1UKPWk01
+      comparisons:
+        image: ignore   # don't restart containers with older versions of the image
+        env: strict   # we want precisely this environment
+        volumes: allow_more_present   # if there are more volumes, that's ok, as long as `/tmp:/tmp` is there

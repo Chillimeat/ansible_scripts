@@ -1,0 +1,72 @@
+---
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
+- name: Add the user hxuser 
+  user:
+    name: hxuser 
+    shell: /bin/bash
+    groups: docker
+    append: yes
+- name: Set authorized key for dev 
+  authorized_key:
+    user: hxuser
+    state: present
+    key: '{{ item }}'
+  with_file:
+    - resource/dev_keys/devuser.pub
+- name: Copy id_rsa
+  copy:
+    src: resource/deploy_id_rsa
+    dest: /home/hxuser/.ssh/id_rsa
+    owner: hxuser
+    group: hxuser
+    mode: 0600
+- name: Creates directory
+  file: path=/home/hxuser/.pip state=directory owner=hxuser group=hxuser
+- name: copy pip.conf
+  copy:
+    src: resource/pip.conf
+    dest: /home/hxuser/.pip/pip.conf
+    owner: hxuser
+    group: hxuser
+- name: install supervisor
+  command: '{{ item }}'
+  with_items:
+    - pip install supervisor
+- name: Creates supervisor conf directory
+  file: path=/home/hxuser/conf/modules state=directory owner=hxuser group=hxuser
+- name: check supervisor conf file exists.
+  stat:
+    path: /home/hxuser/conf/supervisor.conf
+  register: supervisor_conf_exists
+- name: create supervisor conf file
+  shell: '{{ item }}'
+  with_items:
+    - echo_supervisord_conf > /home/hxuser/conf/supervisor.conf
+  when: supervisor_conf_exists.stat.exists == False
+- name: Creates virtualenv directory
+  file: path=/home/hxuser/.virtualenv state=directory owner=hxuser group=hxuser
+- name: Manually create the initial virtualenv
+  command: /opt/python3/bin/python3 -m venv  /home/hxuser/.virtualenv/hotelenv creates="/home/hxuser/.virtualenv/hotelenv"
+  become: yes
+  become_user: hxuser
+- lineinfile:
+    path: /home/hxuser/.bash_profile
+    state: present
+    line: '{{ item }}'
+  with_items:
+    - alias supctl='supervisorctl -c ~/bin/supervisor.conf'
+    - alias exportenv='export `cat .env | grep -v "^#"`'
+    - alias he='source ~/.virtualenv/hotelenv/bin/activate'
+- name: Creates .ssh
+  file: path=/home/hxuser/.ssh state=directory mode=0700 owner=hxuser group=hxuser
+- name: Creates .ssh/config
+  file: path=/home/hxuser/.ssh/config state=touch mode=0600 owner=hxuser group=hxuser
+- name: create content for .ssh/config
+  blockinfile:
+    dest: /home/hxuser/.ssh/config
+    block: |
+      Host 118.144.76.19
+      Port 1322
