@@ -1,0 +1,12 @@
+- hosts: vpsserver
+  remote_user: root
+  tasks:
+    - shell: "who --ips | head -1 |  awk '{print $5}'"
+      register: source_ip
+    - debug: var=source_ip
+    - name: Allow all access port
+      ufw:
+        rule: allow
+        src: "{{ source_ip.stdout }}"
+        port: 8988
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
